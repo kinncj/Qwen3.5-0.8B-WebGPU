@@ -1,0 +1,40 @@
+# Deploys to https://qwen3-5-0-8b-webgpu.pages.dev
+# Adapted from https://huggingface.co/spaces/webml-community/Qwen3.5-0.8B-WebGPU
+#
+# Required secrets:
+#   CLOUDFLARE_API_TOKEN — API token with "Cloudflare Pages: Edit" permission
+#   CLOUDFLARE_ACCOUNT_ID — found in the Cloudflare dashboard sidebar
+
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: qwen3-5-0-8b-webgpu
+          directory: dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
